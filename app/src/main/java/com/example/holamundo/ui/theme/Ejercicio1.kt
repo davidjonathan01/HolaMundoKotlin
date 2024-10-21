@@ -19,25 +19,25 @@ open class Persona(nombre:String, apellidos:String, fechaNacimiento: String, sex
 // Clase Empleado, que hereda de Persona
 open class Empleado: Persona{
     val sueldoBruto: Int
+    var categoria: String?=null
+    var directivo: Empleado?=null
+    val subordinados: MutableList<Empleado> = mutableListOf()
+    var empresa: Empresa?=null
 
     constructor(nombre:String, apellidos:String, fechaNacimiento: String, sexo: String, sueldoBruto: Int):
             super(nombre, apellidos, fechaNacimiento, sexo){
                 this.sueldoBruto=sueldoBruto
     }
-}
 
-// Clase Directivo, que hereda de Empleado y tiene una categoría y subordinados
-class Directivo:Empleado{
-    val categoria: String
-    val subordinados: MutableList<Empleado> = mutableListOf()
-    constructor(nombre:String, apellidos:String, fechaNacimiento: String, sexo: String, sueldoBruto: Int,categoria: String):
-            super(nombre,apellidos,fechaNacimiento,sexo,sueldoBruto){
+    constructor(nombre:String, apellidos:String, fechaNacimiento: String, sexo: String, sueldoBruto: Int, categoria:String):
+            super(nombre, apellidos, fechaNacimiento, sexo){
+                this.sueldoBruto=sueldoBruto
                 this.categoria=categoria
-
     }
 
     fun agregarSubordinado(empleado: Empleado) {
-        subordinados.add(empleado)
+        empleado.directivo=this
+        this.subordinados.add(empleado)
     }
 }
 
@@ -62,6 +62,7 @@ class Empresa(nombre: String) {
     }
 
     fun agregarEmpleado(empleado: Empleado) {
+        empleado.empresa=this
         empleados.add(empleado)
     }
 
@@ -73,16 +74,12 @@ class Empresa(nombre: String) {
         val sb = StringBuilder()
         sb.append("Empleados de la empresa $nombre:\n")
         empleados.forEach { empleado ->
-            if (empleado is Directivo) {
-                sb.append("Directivo: ${empleado.nombre} ${empleado.apellidos}, Categoría: ${empleado.categoria}, Sueldo Bruto: ${empleado.sueldoBruto}\n")
-                if (empleado.subordinados.isNotEmpty()) {
-                    sb.append("  Subordinados:\n")
-                    empleado.subordinados.forEach { sub ->
-                        sb.append("    ${sub.nombre} ${sub.apellidos}, Sueldo Bruto: ${sub.sueldoBruto}\n")
-                    }
+            sb.append("${empleado.nombre} ${empleado.apellidos}, Categoría: ${empleado.categoria}, Sueldo Bruto: ${empleado.sueldoBruto}\n")
+            if (empleado.subordinados.isNotEmpty()) {
+                sb.append("  Subordinados:\n")
+                empleado.subordinados.forEach { sub ->
+                    sb.append("    ${sub.nombre} ${sub.apellidos}, Sueldo Bruto: ${sub.sueldoBruto}\n")
                 }
-            } else {
-                sb.append("${empleado.nombre} ${empleado.apellidos}, Sueldo Bruto: ${empleado.sueldoBruto}\n")
             }
         }
         return sb.toString()
@@ -105,18 +102,19 @@ fun main() {
 
     // Creación de empleados y directivos
     val empleado1 = Empleado("Juan", "Pérez", "1985-10-10", "M", 2500)
-    val directivo1 = Directivo("Ana", "Gómez", "1990-05-12", "F", 5000, "Gerente de Ventas")
     val empleado2 = Empleado("Luis", "Rodríguez", "1992-03-22", "M", 1800)
+    val directivo1= Empleado("Diego", "Cuchillo", "01/01/01", "M", 8000, "Capataz")
 
     // Asignación de subordinados al directivo
     //directivo1.agregarSubordinado(empleado2)
 
     // Agregar empleados y directivos a la empresa
-    empresa.agregarEmpleado(empleado2)
-    directivo1.agregarSubordinado(empleado2)
     empresa.agregarEmpleado(empleado1)
+    empresa.agregarEmpleado(empleado2)
     empresa.agregarEmpleado(directivo1)
 
+    directivo1.agregarSubordinado(empleado2)
+    directivo1.agregarSubordinado(empleado1)
 
     // Creación de clientes
     val cliente1 = Cliente("Carlos", "Martínez", "1980-12-02", "M", 987654321)
@@ -131,4 +129,10 @@ fun main() {
 
     //Mostrar datos de clientes
     println(empresa.mostrarClientes())
+
+    print(empleado1.directivo?.nombre)
+    print(empleado2.directivo?.nombre)
+    print(empleado1.empresa?.nombre)
+    print(empleado2.empresa?.nombre)
+
 }
